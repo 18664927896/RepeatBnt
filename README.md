@@ -3,7 +3,7 @@
 
 # 实现原理
 # 第一步：交换方法实现
-static dispatch_once_t onceToken;\n
+static dispatch_once_t onceToken;/n
     //保证只运行一次\n
     dispatch_once(&onceToken, ^{\n
         //交换方法\n
