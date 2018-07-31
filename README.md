@@ -3,14 +3,14 @@
 
 # 实现原理
 # 第一步：交换方法实现
-static dispatch_once_t onceToken;<Br/>
+` static dispatch_once_t onceToken;<Br/>
     //保证只运行一次<Br/>
     dispatch_once(&onceToken, ^{<Br/>
         //交换方法<Br/>
-        Method sendAction = class_getInstanceMethod(self, @selector(sendAction:to:forEvent:));<Br/>
+       Method sendAction = class_getInstanceMethod(self, @selector(sendAction:to:forEvent:));<Br/>
         Method sg_sendAction = class_getInstanceMethod(self, @selector(sg_sendAction:to:forEvent:));<Br/>
         method_exchangeImplementations(sendAction, sg_sendAction);<Br/>
-    });<Br/>
+    });<Br/>``
 # 第二步：关联判断属性
 -(NSInteger)targetTime{<Br/>
     return [objc_getAssociatedObject(self, "targetTime") integerValue];<Br/>
