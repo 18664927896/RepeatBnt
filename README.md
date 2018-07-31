@@ -2,12 +2,34 @@
 防止按钮重复点击
 
 # 实现原理
-# 第一步：
-使用run time method_exchangeImplementations(Method _Nonnull m1, Method _Nonnull m2) 交换UIButtonsendAction:to:forEvent:方法实现
-# 第二步：
-使用run time objc_getAssociatedObject(id _Nonnull object, const void * _Nonnull key)与objc_setAssociatedObject(id _Nonnull object, const void * _Nonnull key,
-                         id _Nullable value, objc_AssociationPolicy policy)关联一个值做为防止重复点击的条件
-# 第三步：
-使用gcd的dispatch_after函数做一个延时操作，改变关联属性值；
+# 第一步：交换方法实现
+static dispatch_once_t onceToken;
+    //保证只运行一次
+    dispatch_once(&onceToken, ^{
+        //交换方法
+        Method sendAction = class_getInstanceMethod(self, @selector(sendAction:to:forEvent:));
+        Method sg_sendAction = class_getInstanceMethod(self, @selector(sg_sendAction:to:forEvent:));
+        method_exchangeImplementations(sendAction, sg_sendAction);
+    });
+# 第二步：关联判断属性
+-(NSInteger)targetTime{
+    return [objc_getAssociatedObject(self, "targetTime") integerValue];
+}
+
+-(void)setTargetTime:(NSInteger)targetTime{
+    objc_setAssociatedObject(self, "targetTime", @(targetTime), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+# 第三步：实现交换函数
+-(void)sg_sendAction:(SEL)action to:(id)target forEvent:(UIEvent *)event{
+    if (self.targetTime==0) {//判断是否执行点击方法
+        self.targetTime = 1;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{//3秒钟后改变执行条件
+            self.targetTime = 0 ;
+        });
+        [self sg_sendAction:action to:target forEvent:event];
+    }else{
+        NSLog(@"不可多次重复点击");
+    }
+}
    
 
